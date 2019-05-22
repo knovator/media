@@ -43,7 +43,7 @@ trait MediaService
     public function store(CreateRequest $request) {
         $input = $request->all();
         try {
-            // remove static user id
+
             $media = $this->uploadFiles($input, '5');
 
             return $this->sendResponse($media,

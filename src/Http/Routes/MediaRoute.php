@@ -7,10 +7,7 @@ use Knovators\Support\Routing\RouteRegistrar;
 
 /**
  * Class MediaRoute
- *
  * @package  Knovators\Media\Http\Routes
- *
- * @codeCoverageIgnore
  */
 class MediaRoute extends RouteRegistrar
 {
