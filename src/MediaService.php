@@ -43,9 +43,8 @@ trait MediaService
     public function store(CreateRequest $request) {
         $input = $request->all();
         try {
-
-            $media = $this->uploadFiles($input, '5');
-
+            $user = Auth::user();
+            $media = $this->uploadFiles($input, $user->id);
             return $this->sendResponse($media,
                 trans('media::messages.uploaded', ['module' => 'Media']),
                 HTTPCode::CREATED);
