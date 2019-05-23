@@ -23,10 +23,8 @@ class MediaRoute extends RouteRegistrar
         });
 
         $this->group($this->clientAttributes(), function () {
-            $this->name('media.')->group(function () {
-                $this->name('upload')->post('upload', 'MediaController@store');
-                $this->name('user.index')->get('user/list', 'MediaController@userImages');
-            });
+            $this->post('upload', 'MediaController@store');
+            $this->get('user/list', 'MediaController@userImages');
         });
 
     }
