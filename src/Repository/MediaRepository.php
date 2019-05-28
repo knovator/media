@@ -34,7 +34,7 @@ class MediaRepository extends BaseRepository
      */
     public function getMediaFileList($input = []) {
 
-        $masters = $this->model->orderByDesc('id')->select('id', 'name', 'type', 'mime_type');
+        $masters = $this->model->orderByDesc('id')->select('id', 'name', 'type', 'mime_type','uri');
 
         if (isset($input['user_id'])) {
             $masters = $masters->where('created_by', $input['user_id']);
