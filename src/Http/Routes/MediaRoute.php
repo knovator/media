@@ -25,6 +25,10 @@ class MediaRoute extends RouteRegistrar
         $this->group($this->clientAttributes(), function () {
             $this->post('upload', 'MediaController@store');
             $this->get('user/list', 'MediaController@userImages');
+
+            $this->get('{all?}.{extension}', 'MediaController@imageParse')->where('all', '.*')
+                 ->where('extension', $this->config('resize.extension'));
+
         });
 
     }
@@ -34,17 +38,8 @@ class MediaRoute extends RouteRegistrar
      * @return mixed
      */
     public function adminAttributes() {
-        return $this->config('admin_attributes', []);
+        return $this->config('route.admin_attributes', []);
     }
-
-
-    /**
-     * @return mixed
-     */
-    public function clientAttributes() {
-        return $this->config('client_attributes', []);
-    }
-
 
     /**
      * Get config value by key
@@ -55,7 +50,14 @@ class MediaRoute extends RouteRegistrar
      * @return mixed
      */
     private function config($key, $default = null) {
-        return config("media.route.$key", $default);
+        return config("media.$key", $default);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function clientAttributes() {
+        return $this->config('route.client_attributes', []);
     }
 
 
