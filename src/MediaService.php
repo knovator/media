@@ -73,17 +73,13 @@ trait MediaService
         $baseFolder = config('media.base_folder');
         $driver = config('media.driver');
         try {
-            DB::beginTransaction();
             foreach ($input['files'] as $key => $file) {
-
                 $name = UploadService::getFileName($file);
                 $mime = $file->getClientMimeType();
                 $folder = UploadService::getFileLocation($mime);
                 $dbPath = UploadService::getDBFilePath($userId, $folder);
                 $path = "$baseFolder/{$dbPath}";
-
                 UploadService::storeMedia($file, $path, $name, $driver);
-
                 $attributes = [
                     'name'      => $name,
                     'type'      => $input['type'],
@@ -91,15 +87,10 @@ trait MediaService
                     'mime_type' => $mime,
                     'file_size' => $file->getSize()
                 ];
-
                 array_push($media['ids'], $this->mediaRepository->create($attributes)->id);
             }
-
-            DB::commit();
-
             return $media;
         } catch (Exception $exception) {
-            DB::rollBack();
             throw $exception;
         }
 
