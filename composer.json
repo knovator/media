@@ -4,7 +4,7 @@
     "type": "library",
     "require": {
         "prettus/l5-repository": "^2.6",
-        "yajra/laravel-datatables-oracle": "9.0.*"
+        "yajra/laravel-datatables-oracle": "^9.0"
     },
     "minimum-stability": "dev",
     "autoload": {
