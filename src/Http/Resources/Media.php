@@ -2,6 +2,7 @@
 
 namespace Knovators\Media\Http\Resources;
 
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
@@ -14,16 +15,17 @@ class Media extends JsonResource
     /**
      * Transform the resource into an array.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param Request $request
      * @return array
      */
     public function toArray($request) {
         return [
-            'id'        => $this->id,
-            'name'      => $this->name,
-            'type'      => $this->type,
-            'mime_type' => $this->mime_type,
-            'url'       => $this->url,
+            'id'         => $this->id,
+            'name'       => $this->name,
+            'resolution' => $this->resolution,
+            'type'       => $this->type,
+            'mime_type'  => $this->mime_type,
+            'url'        => $this->url,
         ];
     }
 }

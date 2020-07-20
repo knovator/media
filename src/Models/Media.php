@@ -29,6 +29,7 @@ class Media extends Model
         'uri',
         'mime_type',
         'file_size',
+        'resolution',
         'status',
         'created_by',
         'deleted_by',

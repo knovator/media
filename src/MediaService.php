@@ -3,6 +3,7 @@
 namespace Knovators\Media;
 
 use Exception;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -42,14 +43,15 @@ trait MediaService
 
     /**
      * @param CreateRequest $request
-     * @return \Illuminate\Http\JsonResponse
-     * @throws \Exception
+     * @return JsonResponse
+     * @throws Exception
      */
     public function store(CreateRequest $request) {
         $input = $request->all();
         try {
             $user = Auth::user();
             $media = $this->uploadFiles($input, $user->id);
+
             return $this->sendResponse($media,
                 trans('media::messages.uploaded', ['module' => 'Media']),
                 HTTPCode::CREATED);
@@ -70,7 +72,7 @@ trait MediaService
      * @param $userId
      * @param $input
      * @return array
-     * @throws \Exception
+     * @throws Exception
      */
     private function uploadFiles($input, $userId) {
 
@@ -83,6 +85,8 @@ trait MediaService
 
                 $name = UploadService::getFileName($file);
                 $mime = $file->getClientMimeType();
+                $sizeDetails = @getimagesize($file->getRealPath());
+                [$width, $height] = $sizeDetails;
                 $folder = UploadService::getFileLocation($mime);
                 $dbPath = UploadService::getDBFilePath($userId, $folder);
                 $path = "$baseFolder/{$dbPath}";
@@ -90,11 +94,12 @@ trait MediaService
                 UploadService::storeMedia($file, $path, $name, $driver);
 
                 $attributes = [
-                    'name'      => $name,
-                    'type'      => $input['type'],
-                    'uri'       => $this->setFileUri($dbPath, $name),
-                    'mime_type' => $mime,
-                    'file_size' => $file->getSize()
+                    'name'       => $name,
+                    'type'       => $input['type'],
+                    'uri'        => $this->setFileUri($dbPath, $name),
+                    'mime_type'  => $mime,
+                    'resolution' => $width . 'x' . $height,
+                    'file_size'  => $file->getSize()
                 ];
 
                 array_push($media['ids'], $this->mediaRepository->create($attributes)->id);
@@ -123,7 +128,7 @@ trait MediaService
 
     /**
      * @param Media $media
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function destroy(Media $media) {
         try {
@@ -145,7 +150,7 @@ trait MediaService
 
     /**
      * @param Media $media
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function userImages() {
         try {
@@ -168,7 +173,7 @@ trait MediaService
 
     /**
      * @param Media $media
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function index() {
         try {
