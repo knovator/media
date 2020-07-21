@@ -20,12 +20,13 @@ class Media extends JsonResource
      */
     public function toArray($request) {
         return [
-            'id'         => $this->id,
-            'name'       => $this->name,
-            'resolution' => $this->resolution,
-            'type'       => $this->type,
-            'mime_type'  => $this->mime_type,
-            'url'        => $this->url,
+            'id'        => $this->id,
+            'name'      => $this->name,
+            'width'     => $this->width,
+            'height'    => $this->height,
+            'type'      => $this->type,
+            'mime_type' => $this->mime_type,
+            'url'       => $this->url,
         ];
     }
 }

@@ -14,7 +14,8 @@ class AddFieldInToFilesTable extends Migration
     public function up()
     {
         Schema::table('files', function (Blueprint $table) {
-            $table->string('resolution')->after('file_size')->nullable();
+            $table->integer('width')->after('file_size')->nullable();
+            $table->integer('height')->after('width')->nullable();
         });
     }
 
@@ -26,7 +27,8 @@ class AddFieldInToFilesTable extends Migration
     public function down()
     {
         Schema::table('files', function (Blueprint $table) {
-            $table->dropColumn('resolution');
+            $table->dropColumn('width');
+            $table->dropColumn('height');
         });
     }
 }

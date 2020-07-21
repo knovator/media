@@ -82,23 +82,23 @@ trait MediaService
         try {
             DB::beginTransaction();
             foreach ($input['files'] as $key => $file) {
-
-                $name = UploadService::getFileName($file);
-                $mime = $file->getClientMimeType();
-                $folder = UploadService::getFileLocation($mime);
-                $dbPath = UploadService::getDBFilePath($userId, $folder);
-                $path = "$baseFolder/{$dbPath}";
-
-                UploadService::storeMedia($file, $path, $name, $driver);
-
-                $attributes = [
-                    'name'      => $name,
-                    'type'      => $input['type'],
-                    'uri'       => $this->setFileUri($dbPath, $name),
-                    'mime_type' => $mime,
-                    'file_size' => $file->getSize()
-                ];
-
+                    $name = UploadService::getFileName($file);
+                    $mime = $file->getClientMimeType();
+                    $sizeDetails = @getimagesize($file->getRealPath());
+                    [$width, $height] = $sizeDetails;
+                    $folder = UploadService::getFileLocation($mime);
+                    $dbPath = UploadService::getDBFilePath($input['type'], $folder);
+                    $path = "$baseFolder/{$dbPath}";
+                    UploadService::storeMedia($file, $path, $name, $driver);
+                    $attributes = [
+                        'name'      => $name,
+                        'type'      => $input['type'] ?? null,
+                        'uri'       => $this->setFileUri($dbPath, $name),
+                        'mime_type' => $mime,
+                        'width'     => $width,
+                        'height'    => $height,
+                        'file_size' => $file->getSize(),
+                    ];
                 array_push($media['ids'], $this->mediaRepository->create($attributes)->id);
             }
 
@@ -217,13 +217,19 @@ trait MediaService
         return $image->response($extension);
     }
 
-    private function checkIfNeedsToResize($uri) {
+    protected function checkIfNeedsToResize($uri) {
         $last = last($uri);
         $resolutions = explode('x', $last);
         return count($resolutions) > 1 && preg_match('~[0-9]+~', $last);
     }
 
-    public function getFileExtension($uri, $uripop) {
+    /**
+     * @param $uri
+     * @param $uripop
+     * @return |null
+     * @throws Exception
+     */
+    protected function getFileExtension($uri, $uripop) {
         $mimeTypes = config("media.validate.mimes");
         $fileUri = $uri . DIRECTORY_SEPARATOR . $uripop;
         $mimeTypes = explode(',', $mimeTypes);
