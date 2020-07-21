@@ -1,15 +1,25 @@
 {
-    "name": "knovators/media",
-    "description": "This is media module description",
-    "type": "library",
-    "require": {
-        "prettus/l5-repository": "^2.6",
-        "intervention/image": "^2.5"
-    },
-    "minimum-stability": "dev",
-    "autoload": {
-        "psr-4": {
-            "Knovators\\Media\\": "src/"
-        }
+  "name": "knovators/media",
+  "description": "This is media module description",
+  "type": "library",
+  "require": {
+    "prettus/l5-repository": "^2.6",
+    "intervention/image": "^2.5"
+  },
+  "minimum-stability": "dev",
+  "autoload": {
+    "psr-4": {
+      "Knovators\\Media\\": "src/"
     }
+  },
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "git@git.knovator.in:knovators/support.git"
+    },
+    {
+      "type": "vcs",
+      "url": "git@git.knovator.in:knovators/image-resize.git"
+    }
+  ]
 }
