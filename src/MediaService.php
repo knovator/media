@@ -44,13 +44,13 @@ trait MediaService
     /**
      * @param CreateRequest $request
      * @return JsonResponse
-     * @throws Exception
+     * @throws \Exception
      */
     public function store(CreateRequest $request) {
         $input = $request->all();
         try {
             $user = Auth::user();
-            $media = $this->uploadFiles($input, $user->id);
+            $media = $this->uploadFiles($input, $user->id ?? null);
 
             return $this->sendResponse($media,
                 trans('media::messages.uploaded', ['module' => 'Media']),
@@ -72,9 +72,9 @@ trait MediaService
      * @param $userId
      * @param $input
      * @return array
-     * @throws Exception
+     * @throws \Exception
      */
-    private function uploadFiles($input, $userId) {
+    private function uploadFiles($input, $userId = null) {
 
         $media['ids'] = [];
         $baseFolder = config('media.base_folder');
@@ -85,8 +85,6 @@ trait MediaService
 
                 $name = UploadService::getFileName($file);
                 $mime = $file->getClientMimeType();
-                $sizeDetails = @getimagesize($file->getRealPath());
-                [$width, $height] = $sizeDetails;
                 $folder = UploadService::getFileLocation($mime);
                 $dbPath = UploadService::getDBFilePath($userId, $folder);
                 $path = "$baseFolder/{$dbPath}";
@@ -94,12 +92,11 @@ trait MediaService
                 UploadService::storeMedia($file, $path, $name, $driver);
 
                 $attributes = [
-                    'name'       => $name,
-                    'type'       => $input['type'],
-                    'uri'        => $this->setFileUri($dbPath, $name),
-                    'mime_type'  => $mime,
-                    'resolution' => $width . 'x' . $height,
-                    'file_size'  => $file->getSize()
+                    'name'      => $name,
+                    'type'      => $input['type'],
+                    'uri'       => $this->setFileUri($dbPath, $name),
+                    'mime_type' => $mime,
+                    'file_size' => $file->getSize()
                 ];
 
                 array_push($media['ids'], $this->mediaRepository->create($attributes)->id);
@@ -149,7 +146,6 @@ trait MediaService
 
 
     /**
-     * @param Media $media
      * @return JsonResponse
      */
     public function userImages() {
@@ -172,7 +168,6 @@ trait MediaService
 
 
     /**
-     * @param Media $media
      * @return JsonResponse
      */
     public function index() {
@@ -192,39 +187,56 @@ trait MediaService
             HTTPCode::UNPROCESSABLE_ENTITY, $exception);
     }
 
-
     /**
      * @param         $uri
      * @param         $extension
      * @param Request $request
      * @return void
+     * @throws Exception
      */
     public function imageParse($uri, $extension, Request $request) {
-
         $disk = ($request->has('disk')) ? Storage::disk($request->get('disk')) : Storage::disk('public');
-
         $uri = explode('/', $uri);
-
-        $fileName = array_pop($uri) . '.' . $extension;
-
-        $sizeFolder = array_pop($uri);
-
+        $uriPop = array_pop($uri);
+        $checkIfNeedsToResize = $this->checkIfNeedsToResize($uri);
+        $fileName = $uriPop . '.' . $extension;
+        $sizeFolder = $checkIfNeedsToResize ? array_pop($uri) : null;
         $uri = implode('/', $uri);
-
-        $newPath = $disk->path($uri . '/' . $sizeFolder);
-
+        $oldFile = $uriPop . '.' . $this->getFileExtension($uri, $uriPop);
+        $newPath = $disk->path($uri . (!is_null($sizeFolder) ? '/' . $sizeFolder : null));
         if (!file_exists($newPath)) {
             File::makeDirectory($newPath);
         }
-
         $dimensions = explode('x', $sizeFolder);
-
-        $image = Image::make($disk->path($uri . '/' . $fileName))
-                      ->resize(Arr::first($dimensions), Arr::last($dimensions))
-                      ->save($newPath . '/' . $fileName);
-
+        $image = Image::make($disk->path($uri . '/' . $oldFile));
+        if ($checkIfNeedsToResize) {
+            $image = $image->resize(Arr::first($dimensions), Arr::last($dimensions));
+        }
+        $image = $image->encode($extension, 85)
+                       ->save($newPath . '/' . $uriPop, 85, $extension);
         return $image->response($extension);
+    }
 
+    private function checkIfNeedsToResize($uri) {
+        $last = last($uri);
+        $resolutions = explode('x', $last);
+        return count($resolutions) > 1 && preg_match('~[0-9]+~', $last);
+    }
+
+    public function getFileExtension($uri, $uripop) {
+        $mimeTypes = config("media.validate.mimes");
+        $fileUri = $uri . DIRECTORY_SEPARATOR . $uripop;
+        $mimeTypes = explode(',', $mimeTypes);
+        $extension = null;
+        foreach ($mimeTypes as $mimeType) {
+            if (is_null($extension)) {
+                $extension = file_exists($fileUri . '.' . $mimeType) ? $mimeType : null;
+            }
+        }
+        if (is_null($extension)) {
+            throw new Exception('File does not exist.');
+        }
+        return $extension;
     }
 
 
