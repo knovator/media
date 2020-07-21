@@ -213,7 +213,7 @@ trait MediaService
             $image = $image->resize(Arr::first($dimensions), Arr::last($dimensions));
         }
         $image = $image->encode($extension, 85)
-                       ->save($newPath . '/' . $uriPop, 85, $extension);
+                       ->save($newPath . '/' . $fileName, 85, $extension);
         return $image->response($extension);
     }
 
