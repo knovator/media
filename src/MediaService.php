@@ -44,7 +44,7 @@ trait MediaService
     /**
      * @param CreateRequest $request
      * @return JsonResponse
-     * @throws \Exception
+     * @throws Exception
      */
     public function store(CreateRequest $request) {
         $input = $request->all();
@@ -72,7 +72,7 @@ trait MediaService
      * @param $userId
      * @param $input
      * @return array
-     * @throws \Exception
+     * @throws Exception
      */
     private function uploadFiles($input, $userId = null) {
 
@@ -82,23 +82,23 @@ trait MediaService
         try {
             DB::beginTransaction();
             foreach ($input['files'] as $key => $file) {
-                    $name = UploadService::getFileName($file);
-                    $mime = $file->getClientMimeType();
-                    $sizeDetails = @getimagesize($file->getRealPath());
-                    [$width, $height] = $sizeDetails;
-                    $folder = UploadService::getFileLocation($mime);
-                    $dbPath = UploadService::getDBFilePath($input['type'], $folder);
-                    $path = "$baseFolder/{$dbPath}";
-                    UploadService::storeMedia($file, $path, $name, $driver);
-                    $attributes = [
-                        'name'      => $name,
-                        'type'      => $input['type'] ?? null,
-                        'uri'       => $this->setFileUri($dbPath, $name),
-                        'mime_type' => $mime,
-                        'width'     => $width,
-                        'height'    => $height,
-                        'file_size' => $file->getSize(),
-                    ];
+                $name = UploadService::getFileName($file);
+                $mime = $file->getClientMimeType();
+                $sizeDetails = @getimagesize($file->getRealPath());
+                [$width, $height] = $sizeDetails;
+                $folder = UploadService::getFileLocation($mime);
+                $dbPath = UploadService::getDBFilePath($input['type'], $folder);
+                $path = "$baseFolder/{$dbPath}";
+                UploadService::storeMedia($file, $path, $name, $driver);
+                $attributes = [
+                    'name'      => $name,
+                    'type'      => $input['type'] ?? null,
+                    'uri'       => $this->setFileUri($dbPath, $name),
+                    'mime_type' => $mime,
+                    'width'     => $width,
+                    'height'    => $height,
+                    'file_size' => $file->getSize(),
+                ];
                 $media['ids'][] = $this->mediaRepository->create($attributes)->id;
             }
 
@@ -214,12 +214,14 @@ trait MediaService
         }
         $image = $image->encode($extension, 85)
                        ->save($newPath . '/' . $fileName, 85, $extension);
+
         return $image->response($extension);
     }
 
     protected function checkIfNeedsToResize($uri) {
         $last = last($uri);
         $resolutions = explode('x', $last);
+
         return count($resolutions) > 1 && preg_match('~[0-9]+~', $last);
     }
 
@@ -242,6 +244,7 @@ trait MediaService
         if (is_null($extension)) {
             throw new Exception('File does not exist.');
         }
+
         return $extension;
     }
 
