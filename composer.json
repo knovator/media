@@ -4,8 +4,9 @@
   "type": "library",
   "require": {
     "prettus/l5-repository": "^2.6",
+    "intervention/image": "^2.5",
     "knovators/support": "1.*",
-        "knovators/image-resize": "1.*"
+    "knovators/image-resize": "1.*"
   },
   "minimum-stability": "dev",
   "autoload": {
