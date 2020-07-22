@@ -9,19 +9,10 @@
     "knovators/image-resize": "^1.*"
   },
   "minimum-stability": "dev",
+  "prefer-stable": true,
   "autoload": {
     "psr-4": {
       "Knovators\\Media\\": "src/"
     }
-  },
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "git@git.knovator.in:knovators/support.git"
-    },
-    {
-      "type": "vcs",
-      "url": "git@git.knovator.in:knovators/image-resize.git"
-    }
-  ]
+  }
 }
