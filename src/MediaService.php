@@ -99,7 +99,7 @@ trait MediaService
                         'height'    => $height,
                         'file_size' => $file->getSize(),
                     ];
-                array_push($media['ids'], $this->mediaRepository->create($attributes)->id);
+                $media['ids'][] = $this->mediaRepository->create($attributes)->id;
             }
 
             DB::commit();
@@ -207,9 +207,9 @@ trait MediaService
         if (!file_exists($newPath)) {
             File::makeDirectory($newPath);
         }
-        $dimensions = explode('x', $sizeFolder);
         $image = Image::make($disk->path($uri . '/' . $oldFile));
         if ($checkIfNeedsToResize) {
+            $dimensions = explode('x', $sizeFolder);
             $image = $image->resize(Arr::first($dimensions), Arr::last($dimensions));
         }
         $image = $image->encode($extension, 85)
