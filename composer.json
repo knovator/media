@@ -9,7 +9,6 @@
     "knovators/image-resize": "1.*"
   },
   "minimum-stability": "dev",
-  "prefer-stable": true,
   "autoload": {
     "psr-4": {
       "Knovators\\Media\\": "src/"
