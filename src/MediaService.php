@@ -218,10 +218,14 @@ trait MediaService
         return $image->response($extension);
     }
 
+
+    /**
+     * @param $uri
+     * @return bool
+     */
     protected function checkIfNeedsToResize($uri) {
         $last = last($uri);
         $resolutions = explode('x', $last);
-
         return count($resolutions) > 1 && preg_match('~[0-9]+~', $last);
     }
 
