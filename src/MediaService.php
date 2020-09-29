@@ -12,6 +12,11 @@ use Knovators\Media\Repository\MediaRepository;
 use Knovators\Support\Helpers\HTTPCode;
 use Knovators\Support\Helpers\UploadService;
 use Knovators\Support\Traits\APIResponse;
+use Illuminate\Http\Request;
+use Intervention\Image\Facades\Image;
+use File;
+use Arr;
+use Storage;
 
 /**
  * Trait MediaService
@@ -180,6 +185,41 @@ trait MediaService
 
         return $this->sendResponse(null, __('media::messages.something_wrong'),
             HTTPCode::UNPROCESSABLE_ENTITY, $exception);
+    }
+
+
+    /**
+     * @param         $uri
+     * @param         $extension
+     * @param Request $request
+     * @return void
+     */
+    public function imageParse($uri, $extension, Request $request) {
+
+        $disk = ($request->has('disk')) ? Storage::disk($request->get('disk')) : Storage::disk('public');
+
+        $uri = explode('/', $uri);
+
+        $fileName = array_pop($uri) . '.' . $extension;
+
+        $sizeFolder = array_pop($uri);
+
+        $uri = implode('/', $uri);
+
+        $newPath = $disk->path($uri . '/' . $sizeFolder);
+
+        if (!file_exists($newPath)) {
+            File::makeDirectory($newPath);
+        }
+
+        $dimensions = explode('x', $sizeFolder);
+
+        $image = Image::make($disk->path($uri . '/' . $fileName))
+                      ->resize(Arr::first($dimensions), Arr::last($dimensions))
+                      ->save($newPath . '/' . $fileName);
+
+        return $image->response($extension);
+
     }
 
 

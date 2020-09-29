@@ -3,7 +3,8 @@
     "description": "This is media module description",
     "type": "library",
     "require": {
-        "prettus/l5-repository": "^2.6"
+        "prettus/l5-repository": "^2.6",
+        "intervention/image": "^2.5"
     },
     "minimum-stability": "dev",
     "autoload": {
