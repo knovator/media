@@ -3,6 +3,7 @@
 namespace Knovators\Media;
 
 use Exception;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -38,14 +39,15 @@ trait MediaService
 
     /**
      * @param CreateRequest $request
-     * @return \Illuminate\Http\JsonResponse
-     * @throws \Exception
+     * @return JsonResponse
+     * @throws Exception
      */
     public function store(CreateRequest $request) {
         $input = $request->all();
         try {
             $user = Auth::user();
-            $media = $this->uploadFiles($input, $user->id);
+            $media = $this->uploadFiles($input, $user->id ?? null);
+
             return $this->sendResponse($media,
                 trans('media::messages.uploaded', ['module' => 'Media']),
                 HTTPCode::CREATED);
@@ -66,9 +68,9 @@ trait MediaService
      * @param $userId
      * @param $input
      * @return array
-     * @throws \Exception
+     * @throws Exception
      */
-    private function uploadFiles($input, $userId) {
+    private function uploadFiles($input, $userId = null) {
 
         $media['ids'] = [];
         $baseFolder = config('media.base_folder');
@@ -77,18 +79,22 @@ trait MediaService
             foreach ($input['files'] as $key => $file) {
                 $name = UploadService::getFileName($file);
                 $mime = $file->getClientMimeType();
+                $sizeDetails = @getimagesize($file->getRealPath());
+                [$width, $height] = $sizeDetails;
                 $folder = UploadService::getFileLocation($mime);
-                $dbPath = UploadService::getDBFilePath($userId, $folder);
+                $dbPath = UploadService::getDBFilePath($input['type'], $folder);
                 $path = "$baseFolder/{$dbPath}";
                 UploadService::storeMedia($file, $path, $name, $driver);
                 $attributes = [
                     'name'      => $name,
-                    'type'      => $input['type'],
+                    'type'      => $input['type'] ?? null,
                     'uri'       => $this->setFileUri($dbPath, $name),
                     'mime_type' => $mime,
-                    'file_size' => $file->getSize()
+                    'width'     => $width,
+                    'height'    => $height,
+                    'file_size' => $file->getSize(),
                 ];
-                array_push($media['ids'], $this->mediaRepository->create($attributes)->id);
+                $media['ids'][] = $this->mediaRepository->create($attributes)->id;
             }
             return $media;
         } catch (Exception $exception) {
@@ -174,6 +180,70 @@ trait MediaService
             HTTPCode::UNPROCESSABLE_ENTITY, $exception);
     }
 
+    /**
+     * @param         $uri
+     * @param         $extension
+     * @param Request $request
+     * @return void
+     * @throws Exception
+     */
+    public function imageParse($uri, $extension, Request $request) {
+        $disk = ($request->has('disk')) ? Storage::disk($request->get('disk')) : Storage::disk('public');
+        $uri = explode('/', $uri);
+        $uriPop = array_pop($uri);
+        $checkIfNeedsToResize = $this->checkIfNeedsToResize($uri);
+        $fileName = $uriPop . '.' . $extension;
+        $sizeFolder = $checkIfNeedsToResize ? array_pop($uri) : null;
+        $uri = implode('/', $uri);
+        $oldFile = $uriPop . '.' . $this->getFileExtension($uri, $uriPop);
+        $newPath = $disk->path($uri . (!is_null($sizeFolder) ? '/' . $sizeFolder : null));
+        if (!file_exists($newPath)) {
+            File::makeDirectory($newPath);
+        }
+        $image = Image::make($disk->path($uri . '/' . $oldFile));
+        if ($checkIfNeedsToResize) {
+            $dimensions = explode('x', $sizeFolder);
+            $image = $image->resize(Arr::first($dimensions), Arr::last($dimensions));
+        }
+        $image = $image->encode($extension, 85)
+                       ->save($newPath . '/' . $fileName, 85, $extension);
+
+        return $image->response($extension);
+    }
+
+
+    /**
+     * @param $uri
+     * @return bool
+     */
+    protected function checkIfNeedsToResize($uri) {
+        $last = last($uri);
+        $resolutions = explode('x', $last);
+        return count($resolutions) > 1 && preg_match('~[0-9]+~', $last);
+    }
+
+    /**
+     * @param $uri
+     * @param $uripop
+     * @return |null
+     * @throws Exception
+     */
+    protected function getFileExtension($uri, $uripop) {
+        $mimeTypes = config("media.validate.mimes");
+        $fileUri = $uri . DIRECTORY_SEPARATOR . $uripop;
+        $mimeTypes = explode(',', $mimeTypes);
+        $extension = null;
+        foreach ($mimeTypes as $mimeType) {
+            if (is_null($extension)) {
+                $extension = file_exists($fileUri . '.' . $mimeType) ? $mimeType : null;
+            }
+        }
+        if (is_null($extension)) {
+            throw new Exception('File does not exist.');
+        }
+
+        return $extension;
+    }
 
 
 }

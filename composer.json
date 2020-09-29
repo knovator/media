@@ -1,19 +1,19 @@
 {
-    "name": "knovators/media",
-    "description": "This is media module description",
-    "type": "library",
-    "require": {
-        "prettus/l5-repository": "^2.6",
-        "knovators/support": "1.*",
+  "name": "knovators/media",
+  "description": "This is media module description",
+  "type": "library",
+  "require": {
+    "prettus/l5-repository": "^2.6",
+    "knovators/support": "1.*",
         "knovators/image-resize": "1.*",
         "yajra/laravel-datatables-oracle": "^9.0"
-    },
-    "minimum-stability": "dev",
-    "autoload": {
-        "psr-4": {
-            "Knovators\\Media\\": "src/"
-        }
-    },
+  },
+  "minimum-stability": "dev",
+  "autoload": {
+    "psr-4": {
+      "Knovators\\Media\\": "src/"
+    }
+  },
     "repositories": [
         {
             "type": "vcs",
