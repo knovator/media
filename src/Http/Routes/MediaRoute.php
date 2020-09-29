@@ -27,8 +27,6 @@ class MediaRoute extends RouteRegistrar
             $this->get('user/list', 'MediaController@userImages');
 
         });
-        $this->get('{all?}.{extension}', 'MediaController@imageParse')->where('all', '.*')
-             ->where('extension', $this->config('resize.extension'));
 
     }
 
