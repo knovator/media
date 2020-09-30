@@ -24,6 +24,9 @@ class Media extends Model
 
     protected $fillable = [
         'name',
+        'title',
+        'alt',
+        'link',
         'type',
         'slug',
         'uri',

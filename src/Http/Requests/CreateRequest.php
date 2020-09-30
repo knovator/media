@@ -35,9 +35,13 @@ class CreateRequest extends FormRequest
         $maxSize = $this->config('max_size');
 
         return [
-            'files'   => 'required|array',
-            'files.*' => "required|mimes:$mimeTypes|max:$maxSize",
-            'type'    => 'required|string'
+            'files'   => 'required_without:file|array',
+            'files.*' => "required_with:files|mimes:$mimeTypes|max:$maxSize",
+            'file'    => "required_without:files|mimes:$mimeTypes|max:$maxSize",
+            'type'    => 'required|string',
+            'title'   => 'sometimes|required|string',
+            'alt'     => 'sometimes|required|string',
+            'link'    => 'sometimes|required|string'
         ];
     }
 

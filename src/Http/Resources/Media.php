@@ -27,6 +27,9 @@ class Media extends JsonResource
             'type'      => $this->type,
             'mime_type' => $this->mime_type,
             'url'       => $this->url,
+            'title'     => $this->title,
+            'alt'       => $this->alt,
+            'link'      => $this->link,
         ];
     }
 }

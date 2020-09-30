@@ -46,7 +46,11 @@ trait MediaService
         $input = $request->all();
         try {
             $user = Auth::user();
-            $media = $this->uploadFiles($input, $user->id ?? null);
+            if (isset($input['file'])) {
+                $media = $this->uploadFile($input);
+            } elseif (isset($input['files'])) {
+                $media = $this->uploadFiles($input, $user->id ?? null);
+            }
 
             return $this->sendResponse($media,
                 trans('media::messages.uploaded', ['module' => 'Media']),
@@ -63,45 +67,42 @@ trait MediaService
 
     }
 
-
     /**
-     * @param $userId
+     * @param $file
      * @param $input
-     * @return array
+     * @return mixed
      * @throws Exception
      */
-    private function uploadFiles($input, $userId = null) {
-
-        $media['ids'] = [];
-        $baseFolder = config('media.base_folder');
-        $driver = config('media.driver');
+    protected function uploadFile($input, $file = null) {
         try {
-            foreach ($input['files'] as $key => $file) {
-                $name = UploadService::getFileName($file);
-                $mime = $file->getClientMimeType();
-                $sizeDetails = @getimagesize($file->getRealPath());
-                [$width, $height] = $sizeDetails;
-                $folder = UploadService::getFileLocation($mime);
-                $dbPath = UploadService::getDBFilePath($input['type'], $folder);
-                $path = "$baseFolder/{$dbPath}";
-                UploadService::storeMedia($file, $path, $name, $driver);
-                $attributes = [
-                    'name'      => $name,
-                    'type'      => $input['type'] ?? null,
-                    'uri'       => $this->setFileUri($dbPath, $name),
-                    'mime_type' => $mime,
-                    'width'     => $width,
-                    'height'    => $height,
-                    'file_size' => $file->getSize(),
-                ];
-                $media['ids'][] = $this->mediaRepository->create($attributes)->id;
-            }
-            return $media;
+            $baseFolder = config('media.base_folder');
+            $mediaPath = config('media.driver');
+            $file = $file ?? $input['file'];
+            $name = UploadService::getFileName($file);
+            $mime = $file->getClientMimeType();
+            $sizeDetails = @getimagesize($file->getRealPath());
+            [$width, $height] = $sizeDetails;
+            $folder = UploadService::getFileLocation($mime);
+            $dbPath = UploadService::getDBFilePath($input['type'], $folder);
+            $path = "{$baseFolder}/{$dbPath}";
+            UploadService::storeMedia($file, $path, $name, $mediaPath);
+            $attributes = [
+                'name'      => $name,
+                'type'      => $input['type'] ?? null,
+                'uri'       => $this->setFileUri($dbPath, $name),
+                'mime_type' => $mime,
+                'width'     => $width,
+                'height'    => $height,
+                'title'     => $input['title'] ?? null,
+                'alt'       => $input['alt'] ?? null,
+                'link'      => $input['link'] ?? null,
+                'file_size' => $file->getSize(),
+            ];
+            return $this->mediaRepository->create($attributes);
+
         } catch (Exception $exception) {
             throw $exception;
         }
-
-
     }
 
     /**
@@ -113,10 +114,30 @@ trait MediaService
         return $path . DIRECTORY_SEPARATOR . $name;
     }
 
+    /**
+     * @param $userId
+     * @param $input
+     * @return array
+     * @throws Exception
+     */
+    protected function uploadFiles($input, $userId = null) {
+        $media['ids'] = [];
+        try {
+            foreach ($input['files'] as $key => $file) {
+                $mediaObject = $this->uploadFile($input, $file);
+                $media['ids'][] = $mediaObject->id;
+            }
+            return $media;
+        } catch (Exception $exception) {
+            throw $exception;
+        }
+
+
+    }
 
     /**
      * @param Media $media
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function destroy(Media $media) {
         try {
@@ -135,10 +156,9 @@ trait MediaService
             HTTPCode::UNPROCESSABLE_ENTITY, $exception);
     }
 
-
     /**
      * @param Media $media
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function userImages() {
         try {
@@ -158,10 +178,9 @@ trait MediaService
             HTTPCode::UNPROCESSABLE_ENTITY, $exception);
     }
 
-
     /**
      * @param Media $media
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function index() {
         try {
@@ -211,7 +230,6 @@ trait MediaService
         return $image->response($extension);
     }
 
-
     /**
      * @param $uri
      * @return bool
@@ -219,6 +237,7 @@ trait MediaService
     protected function checkIfNeedsToResize($uri) {
         $last = last($uri);
         $resolutions = explode('x', $last);
+
         return count($resolutions) > 1 && preg_match('~[0-9]+~', $last);
     }
 
