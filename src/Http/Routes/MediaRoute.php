@@ -3,13 +3,13 @@
 namespace Knovators\Media\Http\Routes;
 
 
-use Knovators\Support\Routing\RouteRegistrar;
+use Knovators\Support\Routing\RouteRegister;
 
 /**
  * Class MediaRoute
  * @package  Knovators\Media\Http\Routes
  */
-class MediaRoute extends RouteRegistrar
+class MediaRoute extends RouteRegister
 {
 
     /**
