@@ -4,9 +4,9 @@
   "type": "library",
   "require": {
     "prettus/l5-repository": "~2.6",
-    "knovators/support": "~1.4",
-    "knovators/image-resize": "~1.0",
-    "yajra/laravel-datatables-oracle": "~9.0"
+    "knovators/support": "~1",
+    "knovators/image-resize": "~1",
+    "yajra/laravel-datatables-oracle": "~9"
   },
   "minimum-stability": "dev",
   "autoload": {
