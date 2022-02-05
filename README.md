@@ -8,31 +8,31 @@ Features:
 - Upload media file
 - Change image size
 
-Require the knovators/media package in your composer.json and update your dependencies:
+Require the knovator/media package in your composer.json and update your dependencies:
 
 You want to need add media repository in your composer.json file.
 
 ```"repositories": [
           {
               "type": "vcs",
-              "url": "git@git.knovator.in:knovators/media.git"
+              "url": "git@github.com:knovator/media.git"
           }
       ],
 ```
 
 This package included 
-```prettus/l5-repository``` and ```knovators/support``` and ```knovators/image-resize``` packages.
+```prettus/l5-repository``` and ```knovator/support``` and ```knovator/image-resize``` packages.
 ```
-    composer require knovators/media "1.*"
+    composer require knovator/media "1.*"
  ```
-In ```knovators/image-resize``` include ```illuminate/support``` and ```intervention/image```
+In ```knovator/image-resize``` include ```illuminate/support``` and ```intervention/image```
 
 Intervention Image is a PHP image handling and manipulation library providing an easier and expressive way to create, edit, and compose images.
 
-In your ```config/app.php``` add ```Knovators\Media\MediaServiceProvider::class``` to the end of the providers array:
+In your ```config/app.php``` add ```Knovator\Media\MediaServiceProvider::class``` to the end of the providers array:
 
 Publish Configuration:
 
-```php artisan vendor:publish --provider "Knovators\Media\MediaServiceProvider"```
+```php artisan vendor:publish --provider "Knovator\Media\MediaServiceProvider"```
 
-website : [ https://git.knovator.in/knovators/media ]
+website : [ https://github.com/knovator/media ]
